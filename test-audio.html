@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Audio Test for Geometry Dash</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Check Audio Context</h2>
+        <button onclick="testAudioContext()">Test Audio Context</button>
+        <div id="audioContextResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test File Loading</h2>
+        <button onclick="testFileLoading()">Test File Loading</button>
+        <div id="fileLoadingResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Test Audio Playback</h2>
+        <button onclick="testAudioPlayback()">Test Audio Playback</button>
+        <div id="audioPlaybackResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Simple HTML5 Audio Test</h2>
+        <audio id="testAudio" controls>
+            <source src="./sounds/background.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <p>If you can hear this audio player, your files are accessible.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Debug Log</h2>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let sounds = {};
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        function testAudioContext() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                log(`✅ Audio Context created successfully`);
+                log(`Audio Context State: ${audioContext.state}`);
+                
+                if (audioContext.state === 'suspended') {
+                    log(`⚠️ Audio Context is suspended - user interaction required`);
+                }
+                
+                document.getElementById('audioContextResult').innerHTML = 
+                    `<span class="success">✅ Audio Context: ${audioContext.state}</span>`;
+            } catch (error) {
+                log(`❌ Audio Context Error: ${error.message}`);
+                document.getElementById('audioContextResult').innerHTML = 
+                    `<span class="error">❌ Audio Context Error: ${error.message}</span>`;
+            }
+        }
+
+        function testFileLoading() {
+            const files = [
+                './sounds/background.mp3',
+                './sounds/background2.mp3',
+                './sounds/background3.mp3'
+            ];
+
+            let loadedCount = 0;
+            let errorCount = 0;
+
+            files.forEach((file, index) => {
+                log(`Loading file: ${file}`);
+                
+                fetch(file)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        log(`✅ File ${file} - HTTP OK`);
+                        return response.arrayBuffer();
+                    })
+                    .then(arrayBuffer => {
+                        log(`✅ File ${file} - ArrayBuffer received (${arrayBuffer.byteLength} bytes)`);
+                        return audioContext.decodeAudioData(arrayBuffer);
+                    })
+                    .then(audioBuffer => {
+                        const soundName = `background${index + 1}`;
+                        sounds[soundName] = audioBuffer;
+                        loadedCount++;
+                        log(`✅ File ${file} - Audio decoded successfully (${audioBuffer.duration.toFixed(2)}s)`);
+                        
+                        if (loadedCount + errorCount === files.length) {
+                            document.getElementById('fileLoadingResult').innerHTML = 
+                                `<span class="success">✅ Loaded ${loadedCount}/${files.length} files successfully</span>`;
+                        }
+                    })
+                    .catch(error => {
+                        errorCount++;
+                        log(`❌ File ${file} - Error: ${error.message}`);
+                        
+                        if (loadedCount + errorCount === files.length) {
+                            document.getElementById('fileLoadingResult').innerHTML = 
+                                `<span class="error">❌ Failed to load ${errorCount}/${files.length} files</span>`;
+                        }
+                    });
+            });
+        }
+
+        function testAudioPlayback() {
+            if (!audioContext) {
+                log(`❌ Audio Context not initialized`);
+                document.getElementById('audioPlaybackResult').innerHTML = 
+                    `<span class="error">❌ Audio Context not initialized</span>`;
+                return;
+            }
+
+            if (audioContext.state === 'suspended') {
+                log(`⚠️ Resuming Audio Context...`);
+                audioContext.resume().then(() => {
+                    log(`✅ Audio Context resumed`);
+                    playTestSound();
+                });
+            } else {
+                playTestSound();
+            }
+        }
+
+        function playTestSound() {
+            const soundNames = Object.keys(sounds);
+            if (soundNames.length === 0) {
+                log(`❌ No sounds loaded`);
+                document.getElementById('audioPlaybackResult').innerHTML = 
+                    `<span class="error">❌ No sounds loaded</span>`;
+                return;
+            }
+
+            log(`🎵 Playing test sounds...`);
+            let playedCount = 0;
+
+            soundNames.forEach((soundName, index) => {
+                setTimeout(() => {
+                    try {
+                        const source = audioContext.createBufferSource();
+                        const gainNode = audioContext.createGain();
+                        
+                        source.buffer = sounds[soundName];
+                        source.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        gainNode.gain.value = 0.3; // 30% volume
+                        source.start(0);
+                        
+                        playedCount++;
+                        log(`✅ Playing ${soundName} (${playedCount}/${soundNames.length})`);
+                        
+                        if (playedCount === soundNames.length) {
+                            document.getElementById('audioPlaybackResult').innerHTML = 
+                                `<span class="success">✅ Playing ${playedCount} sounds simultaneously</span>`;
+                        }
+                    } catch (error) {
+                        log(`❌ Error playing ${soundName}: ${error.message}`);
+                    }
+                }, index * 1000); // Play each sound 1 second apart
+            });
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            log('🚀 Audio Test Page Loaded');
+            log('Click the buttons above to test each step');
+        });
+    </script>
+</body>
+</html> 

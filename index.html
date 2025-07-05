@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash - Mobile Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .play-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        .play-button:hover {
+            background: #ff5252;
+        }
+        .features {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .features li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Geometry Dash</h1>
+        <p><strong>Mobile Version with Sequential Audio</strong></p>
+        
+        <div class="features">
+            <h3>🎵 Features:</h3>
+            <ul>
+                <li>📱 Mobile touch controls</li>
+                <li>🎵 Sequential background music</li>
+                <li>🏆 Score sharing</li>
+                <li>📱 Works on all devices</li>
+                <li>🎮 Family-friendly gaming</li>
+            </ul>
+        </div>
+        
+        <button class="play-button" onclick="window.location.href='simple-audio-game.html'">
+            🎮 PLAY GAME
+        </button>
+        
+        <p style="margin-top: 20px; font-size: 14px;">
+            Perfect for playing with friends and family!<br>
+            Works on phones, tablets, and computers.
+        </p>
+    </div>
+</body>
+</html> 
